@@ -1,10 +1,18 @@
 import curses, os, time
 
 COL = None; ROW = None
+PORT = None
+
 def main(w):
     draw_workspace(w)
     input()
     pass
+
+
+
+
+
+
 
 
 
@@ -29,8 +37,12 @@ def draw_workspace(w):
     for x in range(2,ROW):
         w.addch(x,0, DV_LINE)
         w.addch(x,COL, DV_LINE)
-    
-    title = 'sermon v0.9' ; l_title = len('sermon v0.9') ; y = 0
+   
+     
+    title = 'sermon v0.9'
+    if PORT is None:
+        title += ' - no port specified'
+    l_title = len(title) ; y = 0
     for x in range(0, COL):
         if (x > (COL/2) - (l_title/2)) and (x < (COL/2) + (l_title/2)):
             w.addch(0, x, title[y] , curses.A_REVERSE | curses.A_BOLD)
