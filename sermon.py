@@ -7,6 +7,7 @@ MODE = 'normal'
 LINE_BUFFER = ''
 COMMAND_BUFFER = ''
 LINE_POS = 2
+INPUT_HEIGHT = None
 
 def main(w):
     draw_workspace(w)
@@ -56,7 +57,6 @@ def flush_input(w,key):
 def process_input(w,key):
     
     global LINE_BUFFER 
-    INPUT_HEIGHT = ROW-1
 
     LINE_BUFFER += chr(key)
     w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
@@ -74,6 +74,8 @@ def set_normal_mode(w):
 def set_insert_mode(w):
     global MODE
     w.addstr(0,0, 'INSERT', curses.A_REVERSE | curses.A_BOLD)
+    w.addstr(INPUT_HEIGHT, 2, '')
+    curses.curs_set(1)
     w.refresh()
     MODE = 'insert'
     pass
@@ -91,19 +93,28 @@ def enter_command(w):
         w.refresh()
         key = w.getch()
     
-    parse_command()
+    parse_command(w)
 
 
-def parse_command():
+def parse_command(w):
+    global COMMAND_BUFFER
+    global INPUT_HEIGHT
+
+    for x in range(0, len(COMMAND_BUFFER)):
+        w.addch(ROW+1, x, ' ')
+    curses.curs_set(0)
+    w.refresh()
     pass
 
 
 
 def draw_workspace(w):
+
     DH_LINE = '═' ; LINE = '─' ; DU_RCOR = '╗' ; DU_LCOR = '╔' 
     DL_LCOR = '╚' ; DL_RCOR = '╝' ; DV_LINE = '║'
 
     global COL ; global ROW
+    global INPUT_HEIGHT
     (ROW, COL) = w.getmaxyx()
     ROW -= 2 ; COL -= 1 
 
@@ -130,7 +141,7 @@ def draw_workspace(w):
             y += 1
         else:
             w.addch(0, x, ' ', curses.A_REVERSE)
-
+    INPUT_HEIGHT = ROW - 1
     w.refresh()
 
 
