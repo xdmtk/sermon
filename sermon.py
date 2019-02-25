@@ -1,10 +1,12 @@
 import curses, os, time
+import socket
 
 COL = None; ROW = None
 PORT = None
 MODE = 'normal'
 LINE_BUFFER = ''
-LINE_POS = 1
+COMMAND_BUFFER = ''
+LINE_POS = 2
 
 def main(w):
     draw_workspace(w)
@@ -21,11 +23,11 @@ def key_events(w):
             enter_command(w)
         if key == ord('i'):
             set_insert_mode(w)
-    if MODE == 'insert':
+    elif MODE == 'insert':
         if key == 27:
             set_normal_mode(w)
         else:
-            if key == curses.KEY_ENTER:
+            if key == curses.KEY_ENTER or key == 10:
                 flush_input(w,key)
             else:
                 process_input(w,key)
@@ -33,17 +35,21 @@ def key_events(w):
 
 def flush_input(w,key):
     global LINE_POS
-    USER_PROMPT = os.getenv('USER') + '@' + os.getenv('HOSTNAME') + ' >> '
-    for x in range(2, COLS-1):
-        w.addchr(ROW-1, x, ' ')
-    if PORT is None:
+    global LINE_BUFFER 
+
+    USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
+    for x in range(2, COL-1):
+        w.addch(ROW-1, x, ' ')
+    if PORT == None:
         w.addstr(LINE_POS, 1, USER_PROMPT + LINE_BUFFER)
         LINE_POS += 1
         w.addstr(LINE_POS, 1, 'No port/device specified!')
+        LINE_POS += 1
     else:
         # TODO: Implement serial logic 
         pass
     w.refresh()
+    LINE_BUFFER = ''
 
 
 
@@ -73,8 +79,23 @@ def set_insert_mode(w):
     pass
 
 def enter_command(w):
-    pass
+    global COMMAND_BUFFER 
+
+    COMMAND_BUFFER = ':'
+    w.addstr(ROW+1,0, COMMAND_BUFFER)
+    w.refresh()
+    key = w.getch() 
+    while key != curses.KEY_ENTER and key != 10:
+        COMMAND_BUFFER += chr(key)
+        w.addstr(ROW+1,0, COMMAND_BUFFER)
+        w.refresh()
+        key = w.getch()
     
+    parse_command()
+
+
+def parse_command():
+    pass
 
 
 
