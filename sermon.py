@@ -4,6 +4,7 @@ COL = None; ROW = None
 PORT = None
 MODE = 'normal'
 LINE_BUFFER = ''
+LINE_POS = 1
 
 def main(w):
     draw_workspace(w)
@@ -23,7 +24,38 @@ def key_events(w):
     if MODE == 'insert':
         if key == 27:
             set_normal_mode(w)
-        
+        else:
+            if key == curses.KEY_ENTER:
+                flush_input(w,key)
+            else:
+                process_input(w,key)
+
+
+def flush_input(w,key):
+    global LINE_POS
+    USER_PROMPT = os.getenv('USER') + '@' + os.getenv('HOSTNAME') + ' >> '
+    for x in range(2, COLS-1):
+        w.addchr(ROW-1, x, ' ')
+    if PORT is None:
+        w.addstr(LINE_POS, 1, USER_PROMPT + LINE_BUFFER)
+        LINE_POS += 1
+        w.addstr(LINE_POS, 1, 'No port/device specified!')
+    else:
+        # TODO: Implement serial logic 
+        pass
+    w.refresh()
+
+
+
+def process_input(w,key):
+    
+    global LINE_BUFFER 
+    INPUT_HEIGHT = ROW-1
+
+    LINE_BUFFER += chr(key)
+    w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
+    w.refresh()
+
 
 def set_normal_mode(w):
     global MODE
