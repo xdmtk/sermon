@@ -1,3 +1,4 @@
+
 import curses, os, time
 import socket
 
@@ -6,8 +7,10 @@ PORT = None
 MODE = 'normal'
 LINE_BUFFER = ''
 COMMAND_BUFFER = ''
-LINE_POS = 2
+LINE_POS_BEGIN = 2
+USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
 INPUT_HEIGHT = None
+serial_history = []
 
 def main(w):
     draw_workspace(w)
@@ -38,25 +41,49 @@ def flush_input(w,key):
     global LINE_POS
     global LINE_BUFFER 
 
-    USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
     for x in range(2, COL-1):
         w.addch(ROW-1, x, ' ')
     if PORT == None:
-        w.addstr(LINE_POS, 1, USER_PROMPT + LINE_BUFFER)
-        LINE_POS += 1
-        w.addstr(LINE_POS, 1, 'No port/device specified!')
-        LINE_POS += 1
+        serial_history.append(USER_PROMPT + LINE_BUFFER)
+        serial_history.append('No port/device specified!')
     else:
         # TODO: Implement serial logic 
         pass
-    w.refresh()
+    write_history(w)
     LINE_BUFFER = ''
+
+def write_history(w):
+    count = 0
+    x = 0
+    if len(serial_history) > (INPUT_HEIGHT - LINE_POS_BEGIN):
+        count = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN)
+
+    line_pos = LINE_POS_BEGIN
+    for line in serial_history:
+        for y in range(2,COL-1):
+            w.addch(line_pos, y, ' ')
+        if count != 0 and x <= count:
+            x += 1
+            continue
+        w.addstr(line_pos, 1, line) 
+        line_pos += 1
+    w.move(INPUT_HEIGHT, 2)
+    w.refresh()
 
 
 
 def process_input(w,key):
     
     global LINE_BUFFER 
+    if key == curses.KEY_BACKSPACE:
+        (y,x) = curses.getsyx()
+        if x == 2:
+            return
+        w.addch(y,x-1, ' ')
+        w.move(y,x-1)
+        LINE_BUFFER = LINE_BUFFER[:-1]
+        w.refresh()
+        return
 
     LINE_BUFFER += chr(key)
     w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
@@ -135,13 +162,14 @@ def draw_workspace(w):
     if PORT is None:
         title += ' - no port specified'
     l_title = len(title) ; y = 0
-    for x in range(0, COL):
+    for x in range(0, COL+1):
         if (x > (COL/2) - (l_title/2)) and (x < (COL/2) + (l_title/2)):
             w.addch(0, x, title[y] , curses.A_REVERSE | curses.A_BOLD)
             y += 1
         else:
             w.addch(0, x, ' ', curses.A_REVERSE)
     INPUT_HEIGHT = ROW - 1
+    w.move(0,0)
     w.refresh()
 
 
