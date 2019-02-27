@@ -84,6 +84,14 @@ def process_input(w,key):
         LINE_BUFFER = LINE_BUFFER[:-1]
         w.refresh()
         return
+    elif key == curses.KEY_UP:
+        return
+    elif key == curses.KEY_DOWN:
+        return
+    elif key == curses.KEY_LEFT:
+        return
+    elif key == curses.KEY_RIGHT:
+        return
 
     LINE_BUFFER += chr(key)
     w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
@@ -101,7 +109,7 @@ def set_normal_mode(w):
 def set_insert_mode(w):
     global MODE
     w.addstr(0,0, 'INSERT', curses.A_REVERSE | curses.A_BOLD)
-    w.addstr(INPUT_HEIGHT, 2, '')
+    w.move(INPUT_HEIGHT, 2 + len(LINE_BUFFER))
     curses.curs_set(1)
     w.refresh()
     MODE = 'insert'
