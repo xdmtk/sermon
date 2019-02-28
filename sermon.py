@@ -46,25 +46,25 @@ def flush_input(w,key):
     if PORT == None:
         serial_history.append(USER_PROMPT + LINE_BUFFER)
         serial_history.append('No port/device specified!')
+        write_history(w)
     else:
         # TODO: Implement serial logic 
         pass
-    write_history(w)
     LINE_BUFFER = ''
 
 def write_history(w):
     count = 0
     x = 0
-    if len(serial_history) > (INPUT_HEIGHT - LINE_POS_BEGIN):
-        count = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN)
+    if len(serial_history) >= (INPUT_HEIGHT - LINE_POS_BEGIN):
+        count = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN - 1)
 
     line_pos = LINE_POS_BEGIN
     for line in serial_history:
-        for y in range(2,COL-1):
-            w.addch(line_pos, y, ' ')
-        if count != 0 and x <= count:
+        if count != 0 and x < count:
             x += 1
             continue
+        for y in range(2,COL-1):
+            w.addch(line_pos, y, ' ')
         w.addstr(line_pos, 1, line) 
         line_pos += 1
     w.move(INPUT_HEIGHT, 2)
