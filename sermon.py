@@ -117,12 +117,36 @@ def set_insert_mode(w):
 
 def enter_command(w):
     global COMMAND_BUFFER 
+    curses.curs_set(1)
 
     COMMAND_BUFFER = ':'
     w.addstr(ROW+1,0, COMMAND_BUFFER)
     w.refresh()
     key = w.getch() 
     while key != curses.KEY_ENTER and key != 10:
+        if key == curses.KEY_BACKSPACE:
+            (y,x) = curses.getsyx()
+            if x == 2:
+                key = w.getch()
+                continue
+            w.addch(y,x-1, ' ')
+            w.move(y,x-1)
+            COMMAND_BUFFER = COMMAND_BUFFER[:-1]
+            key = w.getch()
+            w.refresh()
+            continue
+        if key == curses.KEY_UP:
+            key = w.getch()
+            continue
+        elif key == curses.KEY_DOWN:
+            key = w.getch()
+            continue
+        elif key == curses.KEY_LEFT:
+            key = w.getch()
+            continue
+        elif key == curses.KEY_RIGHT:
+            key = w.getch()
+            continue
         COMMAND_BUFFER += chr(key)
         w.addstr(ROW+1,0, COMMAND_BUFFER)
         w.refresh()
@@ -134,6 +158,8 @@ def enter_command(w):
 def parse_command(w):
     global COMMAND_BUFFER
     global INPUT_HEIGHT
+    if COMMAND_BUFFER.find('q') != -1:
+        quit()
 
     for x in range(0, len(COMMAND_BUFFER)):
         w.addch(ROW+1, x, ' ')
