@@ -22,6 +22,7 @@ b_count_r = 0
 
 def main(w):
     global Q
+    global LT
 
     def clean_thread_exit(sig, frame):
         global quit_flag
@@ -266,7 +267,7 @@ def parse_command(w):
     elif COMMAND_BUFFER.find('port ') != -1:
         if os.path.exists(COMMAND_BUFFER.split(' ')[1]):
             PORT = COMMAND_BUFFER.split(' ')[1]
-            draw_workspace(x)
+            draw_workspace(w)
             LT.start()
         else:
             w.addstr(ROW+1, 0, 'Invalid port!')
