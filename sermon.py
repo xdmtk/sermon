@@ -1,8 +1,11 @@
 
 import curses, os, time
 import socket, sys, serial
+import signal 
 from threading import Thread
+import queue 
 
+Q = None ; S = None
 ERROR = -1
 COL = None; ROW = None
 PORT = None
@@ -13,15 +16,39 @@ LINE_POS_BEGIN = 2
 USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
 INPUT_HEIGHT = None
 serial_history = []
+quit_flag = None
 
 def main(w):
-    draw_workspace(w)
+    global Q
 
-    listener_thread = Thread(target=serial_listen)
-    listener_thread.start()
+    def clean_thread_exit(sig, frame):
+        global quit_flag
+        quit_flag = True
+        quit()
+
+    signal.signal(signal.SIGINT, clean_thread_exit)
+
+    draw_workspace(w)
+    Q = queue.Queue()
+    listener_thread = Thread(target=serial_listen, args=[w])
+    if PORT != None:
+        listener_thread.start()
 
     while True:
         key_events(w)
+
+def serial_listen(w):
+    global quit_flag, S
+    S = serial.Serial(PORT)
+    while True:
+        if quit_flag != None:
+            S.close()
+            curses.endwin()
+            quit()
+        msg = S.readline()
+        Q.put(msg)
+        write_history(w)
+
 
 
 def parse_args():
@@ -79,6 +106,12 @@ def flush_input(w,key):
 def write_history(w):
     count = 0
     x = 0
+    q_write = False
+    if Q.empty() is False:
+        q_write = True
+        while Q.empty() is False:
+            serial_history.append(PORT + ' >> ' + str(Q.get()[2:-2]))
+
     if len(serial_history) >= (INPUT_HEIGHT - LINE_POS_BEGIN):
         count = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN - 1)
 
@@ -182,7 +215,9 @@ def enter_command(w):
 def parse_command(w):
     global COMMAND_BUFFER
     global INPUT_HEIGHT
+    global quit_flag
     if COMMAND_BUFFER.find('q') != -1:
+        quit_flag = True
         quit()
 
     for x in range(0, len(COMMAND_BUFFER)):
