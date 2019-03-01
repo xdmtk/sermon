@@ -99,7 +99,8 @@ def flush_input(w,key):
         serial_history.append('No port/device specified!')
         write_history(w, True)
     else:
-        if S.write(bytes(LINE_BUFFER.encode('ascii'))) != 0:
+        b_written = S.write(bytes(LINE_BUFFER.encode('ascii')))
+        if b_written != 0:
             serial_history.append(USER_PROMPT + LINE_BUFFER)
             write_history(w, True)
         else:
@@ -110,7 +111,20 @@ def flush_input(w,key):
                 serial_history.append('Can\'t write empty message')
             write_history(w, True)
 
+        write_byte_count(w, b_written)
+
     LINE_BUFFER = ''
+
+def write_byte_count(w, b_count):
+    (cur_y , cur_x) = curses.getsyx()
+    start_pos = COL - len('BYTES WRITTEN: XXX')
+    w.addstr(0, start_pos, 'BYTES WRITTEN: ' + str(b_count).rjust(3),  curses.A_REVERSE | curses.A_BOLD)
+
+    w.move(cur_y, cur_x)
+    w.refresh()
+
+   
+
 
 def write_history(w, user_write = False):
     (cur_y, cur_x) = curses.getsyx()
