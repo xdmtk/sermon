@@ -97,20 +97,23 @@ def flush_input(w,key):
     if PORT == None:
         serial_history.append(USER_PROMPT + LINE_BUFFER)
         serial_history.append('No port/device specified!')
-        write_history(w)
+        write_history(w, True)
     else:
-        # TODO: Implement serial logic 
-        pass
+        serial_history.append(USER_PROMPT + LINE_BUFFER)
+        write_history(w, True)
+
     LINE_BUFFER = ''
 
-def write_history(w):
+def write_history(w, user_write = False):
+    (cur_y, cur_x) = curses.getsyx()
     count = 0
     x = 0
     q_write = False
     if Q.empty() is False:
         q_write = True
         while Q.empty() is False:
-            serial_history.append(PORT + ' >> ' + str(Q.get()[2:-2]))
+            ser_response = Q.get().decode('ascii').replace('\n','')
+            serial_history.append(PORT + ' >> ' + str(ser_response))
 
     if len(serial_history) >= (INPUT_HEIGHT - LINE_POS_BEGIN):
         count = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN - 1)
@@ -124,7 +127,10 @@ def write_history(w):
             w.addch(line_pos, y, ' ')
         w.addstr(line_pos, 1, line) 
         line_pos += 1
-    w.move(INPUT_HEIGHT, 2)
+    if user_write is True:
+        w.move(INPUT_HEIGHT, 2)
+    else:
+        w.move(cur_y, cur_x)
     w.refresh()
 
 
