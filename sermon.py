@@ -1,7 +1,9 @@
 
 import curses, os, time
-import socket
+import socket, sys, serial
+from threading import Thread
 
+ERROR = -1
 COL = None; ROW = None
 PORT = None
 MODE = 'normal'
@@ -14,11 +16,33 @@ serial_history = []
 
 def main(w):
     draw_workspace(w)
+
+    listener_thread = Thread(target=serial_listen)
+    listener_thread.start()
+
     while True:
         key_events(w)
 
 
+def parse_args():
+    global PORT
+    if len(sys.argv) > 1:
+        for x in range(1, len(sys.argv)):
+            if sys.argv[x].find('-p') != -1:
+                PORT = sys.argv[x+1]
+                x += 1
+                continue
+    if validate_args() == ERROR:
+        print("Error with arguments")
+        quit()
 
+
+
+def validate_args():
+    if PORT != None:
+        if os.path.exists(PORT) is False:
+            return ERROR
+    
 
 def key_events(w):
     key = w.getch()
@@ -195,6 +219,8 @@ def draw_workspace(w):
     title = 'sermon v0.9'
     if PORT is None:
         title += ' - no port specified'
+    else:
+        title += ' - ' + str(PORT)
     l_title = len(title) ; y = 0
     for x in range(0, COL+1):
         if (x > (COL/2) - (l_title/2)) and (x < (COL/2) + (l_title/2)):
@@ -207,5 +233,6 @@ def draw_workspace(w):
     w.refresh()
 
 
+parse_args()
 os.environ.setdefault('ESCDELAY', '25')
 curses.wrapper(main)
