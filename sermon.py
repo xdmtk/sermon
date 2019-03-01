@@ -5,7 +5,7 @@ import signal
 from threading import Thread
 import queue 
 
-Q = None ; S = None
+Q = None ; S = None ; LT = None
 ERROR = -1
 COL = None; ROW = None
 PORT = None
@@ -33,6 +33,7 @@ def main(w):
     draw_workspace(w)
     Q = queue.Queue()
     listener_thread = Thread(target=serial_listen, args=[w])
+    LT = listener_thread
     if PORT != None:
         listener_thread.start()
 
@@ -213,6 +214,9 @@ def set_insert_mode(w):
 def enter_command(w):
     global COMMAND_BUFFER 
     curses.curs_set(1)
+    for x in range(0, COL):
+        w.addch(ROW+1, x, ' ')
+    w.refresh()
 
     COMMAND_BUFFER = ':'
     w.addstr(ROW+1,0, COMMAND_BUFFER)
@@ -254,9 +258,25 @@ def parse_command(w):
     global COMMAND_BUFFER
     global INPUT_HEIGHT
     global quit_flag
+    global PORT
+
     if COMMAND_BUFFER.find('q') != -1:
         quit_flag = True
         quit()
+    elif COMMAND_BUFFER.find('port ') != -1:
+        if os.path.exists(COMMAND_BUFFER.split(' ')[1]):
+            PORT = COMMAND_BUFFER.split(' ')[1]
+            draw_workspace(x)
+            LT.start()
+        else:
+            w.addstr(ROW+1, 0, 'Invalid port!')
+            w.refresh()
+            curses.curs_set(0)
+            return
+
+
+
+
 
     for x in range(0, len(COMMAND_BUFFER)):
         w.addch(ROW+1, x, ' ')
