@@ -99,8 +99,16 @@ def flush_input(w,key):
         serial_history.append('No port/device specified!')
         write_history(w, True)
     else:
-        serial_history.append(USER_PROMPT + LINE_BUFFER)
-        write_history(w, True)
+        if S.write(bytes(LINE_BUFFER.encode('ascii'))) != 0:
+            serial_history.append(USER_PROMPT + LINE_BUFFER)
+            write_history(w, True)
+        else:
+            serial_history.append(USER_PROMPT + LINE_BUFFER)
+            if len(LINE_BUFFER) != 0:
+                serial_history.append('Failed to write to serial port')
+            else:
+                serial_history.append('Can\'t write empty message')
+            write_history(w, True)
 
     LINE_BUFFER = ''
 
