@@ -17,6 +17,8 @@ USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
 INPUT_HEIGHT = None
 serial_history = []
 quit_flag = None
+b_count_w = 0 
+b_count_r = 0
 
 def main(w):
     global Q
@@ -38,7 +40,10 @@ def main(w):
         key_events(w)
 
 def serial_listen(w):
-    global quit_flag, S
+    global quit_flag
+    global S
+    global b_count_r 
+
     S = serial.Serial(PORT)
     while True:
         if quit_flag != None:
@@ -46,6 +51,7 @@ def serial_listen(w):
             curses.endwin()
             quit()
         msg = S.readline()
+        b_count_r += len(msg)
         Q.put(msg)
         write_history(w)
 
@@ -91,6 +97,7 @@ def key_events(w):
 def flush_input(w,key):
     global LINE_POS
     global LINE_BUFFER 
+    global b_count_w
 
     for x in range(2, COL-1):
         w.addch(ROW-1, x, ' ')
@@ -110,15 +117,17 @@ def flush_input(w,key):
             else:
                 serial_history.append('Can\'t write empty message')
             write_history(w, True)
-
-        write_byte_count(w, b_written)
+        
+        b_count_w += b_written
+        write_byte_count(w)
 
     LINE_BUFFER = ''
 
-def write_byte_count(w, b_count):
+def write_byte_count(w):
     (cur_y , cur_x) = curses.getsyx()
-    start_pos = COL - len('BYTES WRITTEN: XXX')
-    w.addstr(0, start_pos, 'BYTES WRITTEN: ' + str(b_count).rjust(3),  curses.A_REVERSE | curses.A_BOLD)
+    start_pos = COL - len('BYTES RECEIVED: XXX  -  BYTES WRITTEN: XXX')
+    w.addstr(0, start_pos, 'BYTES RECEIVED: ' + str(b_count_r).rjust(3) + 
+            '  -  BYTES WRITTEN: ' + str(b_count_w).rjust(3),  curses.A_REVERSE | curses.A_BOLD)
 
     w.move(cur_y, cur_x)
     w.refresh()
@@ -152,6 +161,7 @@ def write_history(w, user_write = False):
     if user_write is True:
         w.move(INPUT_HEIGHT, 2)
     else:
+        write_byte_count(w)
         w.move(cur_y, cur_x)
     w.refresh()
 
