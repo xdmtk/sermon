@@ -127,9 +127,9 @@ def flush_input(w,key):
 
 def write_byte_count(w):
     (cur_y , cur_x) = curses.getsyx()
-    start_pos = COL - len('BYTES RECEIVED: XXX  -  BYTES WRITTEN: XXX')
-    w.addstr(0, start_pos, 'BYTES RECEIVED: ' + str(b_count_r).rjust(3) + 
-            '  -  BYTES WRITTEN: ' + str(b_count_w).rjust(3),  curses.A_REVERSE | curses.A_BOLD)
+    start_pos = COL - len('RECV: XXX  -  WRITE: XXX')
+    w.addstr(0, start_pos, 'RECV: ' + str(b_count_r).rjust(3) + 
+            '  -  WRITE: ' + str(b_count_w).rjust(3),  curses.A_REVERSE | curses.A_BOLD)
 
     w.move(cur_y, cur_x)
     w.refresh()
