@@ -1,7 +1,7 @@
 
 import curses, os, time
 import socket, sys, serial
-import signal 
+import signal, subprocess
 from threading import Thread
 import queue 
 
@@ -20,7 +20,9 @@ LINE_POS_BEGIN = 2
 USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
 
 serial_history = []
+input_history = []
 
+com_hist_mark = 0
 quit_flag = None
 b_count_w = 0 
 b_count_r = 0
@@ -114,6 +116,7 @@ def term_chr_parse(arg):
     
 
 def key_events(w):
+    global com_hist_mark
     key = w.getch()
     if MODE == 'normal':
         if key == ord(':'):
@@ -126,6 +129,7 @@ def key_events(w):
         else:
             if key == curses.KEY_ENTER or key == 10:
                 flush_input(w,key)
+                com_hist_mark = 0
             else:
                 process_input(w,key)
 
@@ -134,6 +138,8 @@ def flush_input(w,key):
     global LINE_POS
     global LINE_BUFFER 
     global b_count_w
+    
+    input_history.append(LINE_BUFFER)
 
     for x in range(2, COL-1):
         w.addch(ROW-1, x, ' ')
@@ -214,8 +220,10 @@ def process_input(w,key):
         w.refresh()
         return
     elif key == curses.KEY_UP:
+        write_input_history(w, 'up')
         return
     elif key == curses.KEY_DOWN:
+        write_input_history(w, 'down')
         return
     elif key == curses.KEY_LEFT:
         return
@@ -228,6 +236,7 @@ def process_input(w,key):
 
 
 def set_normal_mode(w):
+
     global MODE
     w.addstr(0,0, '      ', curses.A_REVERSE | curses.A_BOLD)
     w.refresh()
@@ -236,6 +245,7 @@ def set_normal_mode(w):
 
 
 def set_insert_mode(w):
+
     global MODE
     w.addstr(0,0, 'INSERT', curses.A_REVERSE | curses.A_BOLD)
     w.move(INPUT_HEIGHT, 2 + len(LINE_BUFFER))
@@ -244,7 +254,9 @@ def set_insert_mode(w):
     MODE = 'insert'
     pass
 
+
 def enter_command(w):
+
     global COMMAND_BUFFER 
     curses.curs_set(1)
     for x in range(0, COL):
@@ -283,7 +295,7 @@ def enter_command(w):
         w.addstr(ROW+1,0, COMMAND_BUFFER)
         w.refresh()
         key = w.getch()
-    
+
     parse_command(w)
 
 
@@ -312,6 +324,35 @@ def parse_command(w):
     curses.curs_set(0)
     w.refresh()
     pass
+
+def write_input_history(w, direction):
+    
+    global com_hist_mark
+    global LINE_BUFFER
+
+    input_history.reverse()
+
+    com_hist_len = len(input_history)
+    if com_hist_len == 0:
+        return
+
+    if direction == 'up':
+        if ( com_hist_len - ( com_hist_mark) ) <= 0:
+            return
+        
+        LINE_BUFFER = input_history[com_hist_mark]
+        com_hist_mark += 1
+
+        for x in range(2, COL-1):
+            w.addch(INPUT_HEIGHT, x, ' ')
+        w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
+
+
+    input_history.reverse()
+        
+
+        
+
 
 
 def draw_workspace(w):
