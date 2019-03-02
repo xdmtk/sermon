@@ -93,40 +93,20 @@ def key_events(w):
                 process_input(w, key)
 
 
-def flush_input(w):
-    global LINE_BUFFER
-    global b_count_w
 
-    input_history.append(LINE_BUFFER)
-
-    for x in range(2, COL - 1):
-        w.addch(ROW - 1, x, ' ')
-    if PORT is None:
-        serial_history.append(USER_PROMPT + LINE_BUFFER)
-        serial_history.append('No port/device specified!')
-        write_history(w, True)
-    else:
-        b_written = S.write(bytes((LINE_BUFFER + TERM_CHR).encode('ascii')))
-        if b_written != 0:
-            serial_history.append(USER_PROMPT + LINE_BUFFER)
-            write_history(w, True)
-        else:
-            serial_history.append(USER_PROMPT + LINE_BUFFER)
-            if len(LINE_BUFFER) != 0:
-                serial_history.append('Failed to write to serial port')
-            else:
-                serial_history.append('Can\'t write empty message')
-            write_history(w, True)
-
-        b_count_w += b_written
-        write_byte_count(w)
-
-    LINE_BUFFER = ''
-
+# SECTION: CURSES WRITERS
+#############################################
+###
+#
 
 def write_byte_count(w):
+
     (cur_y, cur_x) = curses.getsyx()
+
+    # Starting position decided by len of r/w string
     start_pos = COL - len('RECV: XXX  -  WRITE: XXX')
+
+    # Write received and written to upper right corner
     w.addstr(0, start_pos, 'RECV: ' + str(b_count_r).rjust(3) +
              '  -  WRITE: ' + str(b_count_w).rjust(3), curses.A_REVERSE | curses.A_BOLD)
 
@@ -134,20 +114,31 @@ def write_byte_count(w):
     w.refresh()
 
 
+
 def write_history(w, user_write=False):
+
+    # Save current cursor position
     (cur_y, cur_x) = curses.getsyx()
-    count = 0
-    x = 0
+
+    # Check for new entries from serial port into serial queue
     if Q.empty() is False:
+
+        # Add all data from queue to the serial history list
         while Q.empty() is False:
             ser_response = Q.get().decode('ascii').replace('\n', '')
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
+    # Count measures the amount of overflow lines in serial history
+    # to determine for curses when to start writing text to the text area
+    count = 0
     if len(serial_history) >= (INPUT_HEIGHT - LINE_POS_BEGIN):
         count = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN - 1)
 
+    
+    x = 0
     line_pos = LINE_POS_BEGIN
     for line in serial_history:
+
         if count != 0 and x < count:
             x += 1
             continue
@@ -163,8 +154,16 @@ def write_history(w, user_write=False):
     w.refresh()
 
 
+# SECTION: INSERT MODE INPUT
+#############################################
+###
+#
+
 def process_input(w, key):
+
     global LINE_BUFFER
+
+    # Backspace logic for text entry
     if key == curses.KEY_BACKSPACE:
         (y, x) = curses.getsyx()
         if x == 2:
@@ -174,20 +173,71 @@ def process_input(w, key):
         LINE_BUFFER = LINE_BUFFER[:-1]
         w.refresh()
         return
+
+    # Currently only key up works, cycling through
+    # previous input
     elif key == curses.KEY_UP:
         write_input_history(w, 'up')
         return
     elif key == curses.KEY_DOWN:
         write_input_history(w, 'down')
         return
+
+    # Silently ignore left and right keys
     elif key == curses.KEY_LEFT:
         return
     elif key == curses.KEY_RIGHT:
         return
 
+    # Otherwise add to the line buffer and print it
     LINE_BUFFER += chr(key)
     w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
     w.refresh()
+
+
+def flush_input(w):
+
+    global LINE_BUFFER
+    global b_count_w
+    
+    # Add input to history 
+    input_history.append(LINE_BUFFER)
+
+    # Clear text area 
+    for x in range(2, COL - 1):
+        w.addch(INPUT_HEIGHT, x, ' ')
+
+    # Only write to serial if port is specified
+    if PORT is None:
+        serial_history.append(USER_PROMPT + LINE_BUFFER)
+        serial_history.append('No port/device specified!')
+        write_history(w, True)
+    
+    # Record bytes written successfully
+    else:
+        b_written = S.write(bytes((LINE_BUFFER + TERM_CHR).encode('ascii')))
+
+        if b_written != 0:
+            serial_history.append(USER_PROMPT + LINE_BUFFER)
+            write_history(w, True)
+
+        # If no bytes are written, log error
+        else:
+            serial_history.append(USER_PROMPT + LINE_BUFFER)
+
+            if len(LINE_BUFFER) != 0:
+                serial_history.append('Failed to write to serial port')
+
+            # Unless buffer was empty
+            else:
+                serial_history.append('Can\'t write empty message')
+            write_history(w, True)
+
+        b_count_w += b_written
+        write_byte_count(w)
+
+    LINE_BUFFER = ''
+
 
 
 # SECTION: MODE SETTERS
