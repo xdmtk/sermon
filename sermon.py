@@ -54,6 +54,7 @@ def serial_listen(w):
     global b_count_r 
 
     S = serial.Serial(PORT)
+    S.baudrate = BAUD_RATE
     while True:
         if quit_flag != None:
             S.close()
