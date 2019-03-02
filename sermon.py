@@ -6,19 +6,25 @@ from threading import Thread
 import queue 
 
 Q = None ; S = None ; LT = None
-ERROR = -1
 COL = None; ROW = None
 PORT = None
+INPUT_HEIGHT = None
+TERM_CHR = '\n'
+
+ERROR = -1
 MODE = 'normal'
 LINE_BUFFER = ''
 COMMAND_BUFFER = ''
 LINE_POS_BEGIN = 2
 USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
-INPUT_HEIGHT = None
+
 serial_history = []
+
 quit_flag = None
 b_count_w = 0 
 b_count_r = 0
+
+
 
 def main(w):
     global Q
@@ -60,16 +66,31 @@ def serial_listen(w):
 
 
 def parse_args():
-    global PORT
+    
+    global PORT ; global TERM_CHR
+
     if len(sys.argv) > 1:
         for x in range(1, len(sys.argv)):
             if sys.argv[x].find('-p') != -1:
                 PORT = sys.argv[x+1]
                 x += 1
                 continue
+            if sys.argv[x].find('-t') != -1:
+                TERM_CHR = term_chr_parse(sys.argv[x+1])
+                x += 1
+                continue
     if validate_args() == ERROR:
         print("Error with arguments")
         quit()
+
+
+def term_chr_parse(arg):
+    if arg == "nl":
+        return '\n'
+    if arg == "cr":
+        return '\r'
+    if arg == "nlcr":
+        return '\n\r'
 
 
 
@@ -108,7 +129,7 @@ def flush_input(w,key):
         serial_history.append('No port/device specified!')
         write_history(w, True)
     else:
-        b_written = S.write(bytes(LINE_BUFFER.encode('ascii')))
+        b_written = S.write(bytes((LINE_BUFFER + TERM_CHR).encode('ascii')))
         if b_written != 0:
             serial_history.append(USER_PROMPT + LINE_BUFFER)
             write_history(w, True)
