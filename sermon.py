@@ -330,25 +330,28 @@ def write_input_history(w, direction):
     global com_hist_mark
     global LINE_BUFFER
 
-    input_history.reverse()
 
     com_hist_len = len(input_history)
     if com_hist_len == 0:
         return
 
     if direction == 'up':
+        input_history.reverse()
         if ( com_hist_len - ( com_hist_mark) ) <= 0:
             return
         
         LINE_BUFFER = input_history[com_hist_mark]
         com_hist_mark += 1
+        input_history.reverse()
+
+
+
 
         for x in range(2, COL-1):
             w.addch(INPUT_HEIGHT, x, ' ')
         w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
 
 
-    input_history.reverse()
         
 
         
