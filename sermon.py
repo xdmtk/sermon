@@ -10,6 +10,7 @@ COL = None; ROW = None
 PORT = None
 INPUT_HEIGHT = None
 TERM_CHR = '\n'
+BAUD_RATE = 9600
 
 ERROR = -1
 MODE = 'normal'
@@ -53,6 +54,7 @@ def serial_listen(w):
     global b_count_r 
 
     S = serial.Serial(PORT)
+    S.baudrate = BAUD_RATE
     while True:
         if quit_flag != None:
             S.close()
@@ -67,7 +69,7 @@ def serial_listen(w):
 
 def parse_args():
     
-    global PORT ; global TERM_CHR
+    global PORT ; global TERM_CHR ; global BAUD_RATE
 
     if len(sys.argv) > 1:
         for x in range(1, len(sys.argv)):
@@ -79,10 +81,26 @@ def parse_args():
                 TERM_CHR = term_chr_parse(sys.argv[x+1])
                 x += 1
                 continue
+            if sys.argv[x].find('-b') != -1:
+                try: 
+                    BAUD_RATE = int(sys.argv[x+1])
+                except Exception as e:
+                    BAUD_RATE = ERROR
+                x += 1
+                continue
+
+
     if validate_args() == ERROR:
         print("Error with arguments")
         quit()
 
+
+def validate_args():
+    if PORT != None:
+        if os.path.exists(PORT) is False:
+            return ERROR
+    if TERM_CHR == ERROR or BAUD_RATE == ERROR:
+        return ERROR
 
 def term_chr_parse(arg):
     if arg == "nl":
@@ -91,13 +109,9 @@ def term_chr_parse(arg):
         return '\r'
     if arg == "nlcr":
         return '\n\r'
+    else:
+        return ERROR
 
-
-
-def validate_args():
-    if PORT != None:
-        if os.path.exists(PORT) is False:
-            return ERROR
     
 
 def key_events(w):
