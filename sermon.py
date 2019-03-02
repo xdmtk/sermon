@@ -69,54 +69,6 @@ def serial_listen(w):
         Q.put(msg)
         write_history(w)
 
-
-def parse_args():
-    global PORT
-    global TERM_CHR
-    global BAUD_RATE
-
-    if len(sys.argv) > 1:
-        for x in range(1, len(sys.argv)):
-            if sys.argv[x].find('-p') != -1:
-                PORT = sys.argv[x + 1]
-                x += 1
-                continue
-            if sys.argv[x].find('-t') != -1:
-                TERM_CHR = term_chr_parse(sys.argv[x + 1])
-                x += 1
-                continue
-            if sys.argv[x].find('-b') != -1:
-                try:
-                    BAUD_RATE = int(sys.argv[x + 1])
-                except Exception as e:
-                    BAUD_RATE = ERROR
-                x += 1
-                continue
-
-    if validate_args() == ERROR:
-        print("Error with arguments")
-        quit()
-
-
-def validate_args():
-    if PORT is not None:
-        if os.path.exists(PORT) is False:
-            return ERROR
-    if TERM_CHR == ERROR or BAUD_RATE == ERROR:
-        return ERROR
-
-
-def term_chr_parse(arg):
-    if arg == "nl":
-        return '\n'
-    if arg == "cr":
-        return '\r'
-    if arg == "nlcr":
-        return '\n\r'
-    else:
-        return ERROR
-
-
 def key_events(w):
     global com_hist_mark
     key = w.getch()
@@ -238,8 +190,16 @@ def process_input(w, key):
     w.refresh()
 
 
+# SECTION: MODE SETTERS
+#############################################
+###
+#
+
 def set_normal_mode(w):
+
     global MODE
+
+    # Remove insert label on top left
     w.addstr(0, 0, '      ', curses.A_REVERSE | curses.A_BOLD)
     w.refresh()
     MODE = 'normal'
@@ -247,38 +207,66 @@ def set_normal_mode(w):
 
 
 def set_insert_mode(w):
+   
     global MODE
+    MODE = 'insert'
+
+    # Add insert label
     w.addstr(0, 0, 'INSERT', curses.A_REVERSE | curses.A_BOLD)
+
+    # Move cursor to text entry area
     w.move(INPUT_HEIGHT, 2 + len(LINE_BUFFER))
     curses.curs_set(1)
     w.refresh()
-    MODE = 'insert'
-    pass
 
+
+# SECTION: COMMAND ENTRY
+#############################################
+###
+#
 
 def enter_command(w):
+
+    # Global containing current command
     global COMMAND_BUFFER
+
+    # Make cursor visible
     curses.curs_set(1)
+
+    # Clear out command entry area
     for x in range(0, COL):
         w.addch(ROW + 1, x, ' ')
-    w.refresh()
 
+    # Begin command buffer with entry character ':'
+    # and print it
     COMMAND_BUFFER = ':'
     w.addstr(ROW + 1, 0, COMMAND_BUFFER)
     w.refresh()
+
+    # Enter key entry loop
     key = w.getch()
+
+    # Flush command on enter
     while key != curses.KEY_ENTER and key != 10:
+
+        # Backspace logic ( move curses back and either 
+        # keep cursor at begin on empty buffer )
         if key == curses.KEY_BACKSPACE:
             (y, x) = curses.getsyx()
             if x == 2:
                 key = w.getch()
                 continue
+
+            # Or clear the buffer 1 character at a time and print it
             w.addch(y, x - 1, ' ')
             w.move(y, x - 1)
+
             COMMAND_BUFFER = COMMAND_BUFFER[:-1]
             key = w.getch()
             w.refresh()
             continue
+        
+        # Silently ignore keypad keys
         if key == curses.KEY_UP:
             key = w.getch()
             continue
@@ -291,11 +279,16 @@ def enter_command(w):
         elif key == curses.KEY_RIGHT:
             key = w.getch()
             continue
+
+        # If all passes, add key to buffer and print result
         COMMAND_BUFFER += chr(key)
         w.addstr(ROW + 1, 0, COMMAND_BUFFER)
         w.refresh()
+
+        # Restart key grab
         key = w.getch()
 
+    # On finish, jump to parse command
     parse_command(w)
 
 
@@ -305,25 +298,176 @@ def parse_command(w):
     global quit_flag
     global PORT
 
+    # For the few select commands, find special keys to parse
     if COMMAND_BUFFER.find('q') != -1:
         quit_flag = True
         quit()
+
+    # For port entry
     elif COMMAND_BUFFER.find('port ') != -1:
+
+        # Verify port exists
         if os.path.exists(COMMAND_BUFFER.split(' ')[1]):
+
+            # Gets the second token in port command entry
             PORT = COMMAND_BUFFER.split(' ')[1]
             draw_workspace(w)
+
+            # Now that we have the port, start the serial listening thread store
+            # in global LT
             LT.start()
+        
+        # If port is invalid, print error
         else:
             w.addstr(ROW + 1, 0, 'Invalid port!')
             w.refresh()
             curses.curs_set(0)
             return
-
+    
+    # On enter, clear command entry area
     for x in range(0, len(COMMAND_BUFFER)):
         w.addch(ROW + 1, x, ' ')
+
+    # Disappear cursor
     curses.curs_set(0)
     w.refresh()
     pass
+
+
+# SECTION: CURSES FUNCTIONS
+#############################################
+###
+#
+
+def draw_workspace(w):
+    global COL
+    global ROW
+    global INPUT_HEIGHT
+   
+    # Line drawing chars
+    DH_LINE = '═'
+    DU_RCOR = '╗'
+    DU_LCOR = '╔'
+    DL_LCOR = '╚'
+    DL_RCOR = '╝'
+    DV_LINE = '║'
+
+    # Set the terminal height
+    (ROW, COL) = w.getmaxyx()
+
+    # Leave space for command entry
+    ROW -= 2
+    COL -= 1
+
+    # Set row number of text entry area
+    INPUT_HEIGHT = ROW - 1
+
+    # Set corners
+    w.addch(1, 0, DU_LCOR)
+    w.addch(1, COL, DU_RCOR)
+    w.addch(ROW, 0, DL_LCOR)
+    w.addch(ROW, COL, DL_RCOR)
+
+    # Draw lines
+    for x in range(1, COL):
+        w.addch(1, x, DH_LINE)
+        w.addch(ROW, x, DH_LINE)
+        w.addch(ROW - 2, x, DH_LINE)
+    for x in range(2, ROW):
+        w.addch(x, 0, DV_LINE)
+        w.addch(x, COL, DV_LINE)
+
+
+    # Set title
+    title = 'sermon v0.9'
+    if PORT is None:
+        title += ' - no port specified'
+    else:
+        title += ' - ' + str(PORT)
+
+    # Set the length of title to determine center position in title bar
+    l_title = len(title)
+    y = 0
+    for x in range(0, COL + 1):
+
+        # Calcuate center of title bar
+        if (x > (COL / 2) - (l_title / 2)) and (x < (COL / 2) + (l_title / 2)):
+            w.addch(0, x, title[y], curses.A_REVERSE | curses.A_BOLD)
+            y += 1
+        else:
+            w.addch(0, x, ' ', curses.A_REVERSE)
+
+
+    w.move(0, 0)
+    w.refresh()
+
+
+
+# SECTION: ARGUMENT FUNCTIONS
+#############################################
+###
+#
+
+def parse_args():
+    global PORT
+    global TERM_CHR
+    global BAUD_RATE
+
+    if len(sys.argv) > 1:
+        for x in range(1, len(sys.argv)):
+
+            # Arguemnt setting device port
+            if sys.argv[x].find('-p') != -1:
+                PORT = sys.argv[x + 1]
+                x += 1
+                continue
+            
+            # Argument to set termination character
+            if sys.argv[x].find('-t') != -1:
+                TERM_CHR = term_chr_parse(sys.argv[x + 1])
+                x += 1
+                continue
+
+            # Argument to set baud rate
+            if sys.argv[x].find('-b') != -1:
+                try:
+                    BAUD_RATE = int(sys.argv[x + 1])
+                except Exception as e:
+                    BAUD_RATE = ERROR
+                x += 1
+                continue
+
+    # Check for argument erros
+    if validate_args() == ERROR:
+        print("Error with arguments")
+        quit()
+
+
+def validate_args():
+
+    # Make sure device exists
+    if PORT is not None:
+        if os.path.exists(PORT) is False:
+            return ERROR
+
+    # Check baudrate and termination character 
+    if TERM_CHR == ERROR or BAUD_RATE == ERROR:
+        return ERROR
+
+
+def term_chr_parse(arg):
+
+    # Sets the termination char
+    if arg == "nl":
+        return '\n'
+    if arg == "cr":
+        return '\r'
+    if arg == "nlcr":
+        return '\n\r'
+    else:
+        return ERROR
+
+
 
 
 def write_input_history(w, direction):
@@ -347,51 +491,6 @@ def write_input_history(w, direction):
             w.addch(INPUT_HEIGHT, x, ' ')
         w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
 
-
-def draw_workspace(w):
-    DH_LINE = '═'
-    DU_RCOR = '╗'
-    DU_LCOR = '╔'
-    DL_LCOR = '╚'
-    DL_RCOR = '╝'
-    DV_LINE = '║'
-
-    global COL
-    global ROW
-    global INPUT_HEIGHT
-    (ROW, COL) = w.getmaxyx()
-    ROW -= 2
-    COL -= 1
-
-    w.addch(1, 0, DU_LCOR)
-    w.addch(1, COL, DU_RCOR)
-    w.addch(ROW, 0, DL_LCOR)
-    w.addch(ROW, COL, DL_RCOR)
-
-    for x in range(1, COL):
-        w.addch(1, x, DH_LINE)
-        w.addch(ROW, x, DH_LINE)
-        w.addch(ROW - 2, x, DH_LINE)
-    for x in range(2, ROW):
-        w.addch(x, 0, DV_LINE)
-        w.addch(x, COL, DV_LINE)
-
-    title = 'sermon v0.9'
-    if PORT is None:
-        title += ' - no port specified'
-    else:
-        title += ' - ' + str(PORT)
-    l_title = len(title)
-    y = 0
-    for x in range(0, COL + 1):
-        if (x > (COL / 2) - (l_title / 2)) and (x < (COL / 2) + (l_title / 2)):
-            w.addch(0, x, title[y], curses.A_REVERSE | curses.A_BOLD)
-            y += 1
-        else:
-            w.addch(0, x, ' ', curses.A_REVERSE)
-    INPUT_HEIGHT = ROW - 1
-    w.move(0, 0)
-    w.refresh()
 
 
 parse_args()
