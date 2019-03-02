@@ -84,7 +84,7 @@ def parse_args():
                 try: 
                     BAUD_RATE = int(sys.argv[x+1])
                 except Exception as e:
-                    BAUD_RATE = str(e)
+                    BAUD_RATE = ERROR
                 x += 1
                 continue
 
@@ -93,11 +93,13 @@ def parse_args():
         print("Error with arguments")
         quit()
 
+
 def validate_args():
     if PORT != None:
         if os.path.exists(PORT) is False:
             return ERROR
-
+    if TERM_CHR == ERROR or BAUD_RATE == ERROR:
+        return ERROR
 
 def term_chr_parse(arg):
     if arg == "nl":
@@ -106,6 +108,8 @@ def term_chr_parse(arg):
         return '\r'
     if arg == "nlcr":
         return '\n\r'
+    else:
+        return ERROR
 
     
 
