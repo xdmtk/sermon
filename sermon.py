@@ -26,7 +26,6 @@ b_count_w = 0
 b_count_r = 0
 
 
-
 def main(w):
     global Q
     global LT
@@ -48,6 +47,7 @@ def main(w):
     while True:
         key_events(w)
 
+
 def serial_listen(w):
     global quit_flag
     global S
@@ -64,7 +64,6 @@ def serial_listen(w):
         b_count_r += len(msg)
         Q.put(msg)
         write_history(w)
-
 
 
 def parse_args():
@@ -102,6 +101,7 @@ def validate_args():
     if TERM_CHR == ERROR or BAUD_RATE == ERROR:
         return ERROR
 
+
 def term_chr_parse(arg):
     if arg == "nl":
         return '\n'
@@ -111,7 +111,6 @@ def term_chr_parse(arg):
         return '\n\r'
     else:
         return ERROR
-
     
 
 def key_events(w):
@@ -160,6 +159,7 @@ def flush_input(w,key):
 
     LINE_BUFFER = ''
 
+
 def write_byte_count(w):
     (cur_y , cur_x) = curses.getsyx()
     start_pos = COL - len('RECV: XXX  -  WRITE: XXX')
@@ -170,8 +170,6 @@ def write_byte_count(w):
     w.refresh()
 
    
-
-
 def write_history(w, user_write = False):
     (cur_y, cur_x) = curses.getsyx()
     count = 0
@@ -201,7 +199,6 @@ def write_history(w, user_write = False):
         write_byte_count(w)
         w.move(cur_y, cur_x)
     w.refresh()
-
 
 
 def process_input(w,key):
@@ -310,16 +307,11 @@ def parse_command(w):
             curses.curs_set(0)
             return
 
-
-
-
-
     for x in range(0, len(COMMAND_BUFFER)):
         w.addch(ROW+1, x, ' ')
     curses.curs_set(0)
     w.refresh()
     pass
-
 
 
 def draw_workspace(w):
