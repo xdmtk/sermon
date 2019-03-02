@@ -69,9 +69,18 @@ def serial_listen(w):
         Q.put(msg)
         write_history(w)
 
+
+# SECTION: MASTER KEY EVENTS
+#############################################
+###
+#
+
 def key_events(w):
+    
     global com_hist_mark
     key = w.getch()
+    
+    # Handle normal mode entries
     if MODE == 'normal':
         if key == ord(':'):
             enter_command(w)
@@ -82,6 +91,7 @@ def key_events(w):
         if key == curses.KEY_PPAGE:
             pass
 
+    # Handle insert mode entries
     elif MODE == 'insert':
         if key == 27:
             set_normal_mode(w)
