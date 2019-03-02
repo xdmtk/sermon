@@ -1,12 +1,14 @@
-
 import curses, os, time
 import socket, sys, serial
 import signal, subprocess
 from threading import Thread
-import queue 
+import queue
 
-Q = None ; S = None ; LT = None
-COL = None; ROW = None
+Q = None
+S = None
+LT = None
+COL = None
+ROW = None
 PORT = None
 INPUT_HEIGHT = None
 TERM_CHR = '\n'
@@ -24,7 +26,7 @@ input_history = []
 
 com_hist_mark = 0
 quit_flag = None
-b_count_w = 0 
+b_count_w = 0
 b_count_r = 0
 
 
@@ -43,7 +45,7 @@ def main(w):
     Q = queue.Queue()
     listener_thread = Thread(target=serial_listen, args=[w])
     LT = listener_thread
-    if PORT != None:
+    if PORT is not None:
         listener_thread.start()
 
     while True:
@@ -53,12 +55,12 @@ def main(w):
 def serial_listen(w):
     global quit_flag
     global S
-    global b_count_r 
+    global b_count_r
 
     S = serial.Serial(PORT)
     S.baudrate = BAUD_RATE
     while True:
-        if quit_flag != None:
+        if quit_flag is not None:
             S.close()
             curses.endwin()
             quit()
@@ -69,27 +71,27 @@ def serial_listen(w):
 
 
 def parse_args():
-    
-    global PORT ; global TERM_CHR ; global BAUD_RATE
+    global PORT
+    global TERM_CHR
+    global BAUD_RATE
 
     if len(sys.argv) > 1:
         for x in range(1, len(sys.argv)):
             if sys.argv[x].find('-p') != -1:
-                PORT = sys.argv[x+1]
+                PORT = sys.argv[x + 1]
                 x += 1
                 continue
             if sys.argv[x].find('-t') != -1:
-                TERM_CHR = term_chr_parse(sys.argv[x+1])
+                TERM_CHR = term_chr_parse(sys.argv[x + 1])
                 x += 1
                 continue
             if sys.argv[x].find('-b') != -1:
-                try: 
-                    BAUD_RATE = int(sys.argv[x+1])
+                try:
+                    BAUD_RATE = int(sys.argv[x + 1])
                 except Exception as e:
                     BAUD_RATE = ERROR
                 x += 1
                 continue
-
 
     if validate_args() == ERROR:
         print("Error with arguments")
@@ -97,7 +99,7 @@ def parse_args():
 
 
 def validate_args():
-    if PORT != None:
+    if PORT is not None:
         if os.path.exists(PORT) is False:
             return ERROR
     if TERM_CHR == ERROR or BAUD_RATE == ERROR:
@@ -113,7 +115,7 @@ def term_chr_parse(arg):
         return '\n\r'
     else:
         return ERROR
-    
+
 
 def key_events(w):
     global com_hist_mark
@@ -123,27 +125,31 @@ def key_events(w):
             enter_command(w)
         if key == ord('i'):
             set_insert_mode(w)
+        if key == curses.KEY_NPAGE:
+            pass
+        if key == curses.KEY_PPAGE:
+            pass
+
     elif MODE == 'insert':
         if key == 27:
             set_normal_mode(w)
         else:
             if key == curses.KEY_ENTER or key == 10:
-                flush_input(w,key)
+                flush_input(w)
                 com_hist_mark = 0
             else:
-                process_input(w,key)
+                process_input(w, key)
 
 
-def flush_input(w,key):
-    global LINE_POS
-    global LINE_BUFFER 
+def flush_input(w):
+    global LINE_BUFFER
     global b_count_w
-    
+
     input_history.append(LINE_BUFFER)
 
-    for x in range(2, COL-1):
-        w.addch(ROW-1, x, ' ')
-    if PORT == None:
+    for x in range(2, COL - 1):
+        w.addch(ROW - 1, x, ' ')
+    if PORT is None:
         serial_history.append(USER_PROMPT + LINE_BUFFER)
         serial_history.append('No port/device specified!')
         write_history(w, True)
@@ -159,7 +165,7 @@ def flush_input(w,key):
             else:
                 serial_history.append('Can\'t write empty message')
             write_history(w, True)
-        
+
         b_count_w += b_written
         write_byte_count(w)
 
@@ -167,24 +173,22 @@ def flush_input(w,key):
 
 
 def write_byte_count(w):
-    (cur_y , cur_x) = curses.getsyx()
+    (cur_y, cur_x) = curses.getsyx()
     start_pos = COL - len('RECV: XXX  -  WRITE: XXX')
-    w.addstr(0, start_pos, 'RECV: ' + str(b_count_r).rjust(3) + 
-            '  -  WRITE: ' + str(b_count_w).rjust(3),  curses.A_REVERSE | curses.A_BOLD)
+    w.addstr(0, start_pos, 'RECV: ' + str(b_count_r).rjust(3) +
+             '  -  WRITE: ' + str(b_count_w).rjust(3), curses.A_REVERSE | curses.A_BOLD)
 
     w.move(cur_y, cur_x)
     w.refresh()
 
-   
-def write_history(w, user_write = False):
+
+def write_history(w, user_write=False):
     (cur_y, cur_x) = curses.getsyx()
     count = 0
     x = 0
-    q_write = False
     if Q.empty() is False:
-        q_write = True
         while Q.empty() is False:
-            ser_response = Q.get().decode('ascii').replace('\n','')
+            ser_response = Q.get().decode('ascii').replace('\n', '')
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
     if len(serial_history) >= (INPUT_HEIGHT - LINE_POS_BEGIN):
@@ -195,9 +199,9 @@ def write_history(w, user_write = False):
         if count != 0 and x < count:
             x += 1
             continue
-        for y in range(2,COL-1):
+        for y in range(2, COL - 1):
             w.addch(line_pos, y, ' ')
-        w.addstr(line_pos, 1, line) 
+        w.addstr(line_pos, 1, line)
         line_pos += 1
     if user_write is True:
         w.move(INPUT_HEIGHT, 2)
@@ -207,15 +211,14 @@ def write_history(w, user_write = False):
     w.refresh()
 
 
-def process_input(w,key):
-    
-    global LINE_BUFFER 
+def process_input(w, key):
+    global LINE_BUFFER
     if key == curses.KEY_BACKSPACE:
-        (y,x) = curses.getsyx()
+        (y, x) = curses.getsyx()
         if x == 2:
             return
-        w.addch(y,x-1, ' ')
-        w.move(y,x-1)
+        w.addch(y, x - 1, ' ')
+        w.move(y, x - 1)
         LINE_BUFFER = LINE_BUFFER[:-1]
         w.refresh()
         return
@@ -236,18 +239,16 @@ def process_input(w,key):
 
 
 def set_normal_mode(w):
-
     global MODE
-    w.addstr(0,0, '      ', curses.A_REVERSE | curses.A_BOLD)
+    w.addstr(0, 0, '      ', curses.A_REVERSE | curses.A_BOLD)
     w.refresh()
     MODE = 'normal'
     pass
 
 
 def set_insert_mode(w):
-
     global MODE
-    w.addstr(0,0, 'INSERT', curses.A_REVERSE | curses.A_BOLD)
+    w.addstr(0, 0, 'INSERT', curses.A_REVERSE | curses.A_BOLD)
     w.move(INPUT_HEIGHT, 2 + len(LINE_BUFFER))
     curses.curs_set(1)
     w.refresh()
@@ -256,25 +257,24 @@ def set_insert_mode(w):
 
 
 def enter_command(w):
-
-    global COMMAND_BUFFER 
+    global COMMAND_BUFFER
     curses.curs_set(1)
     for x in range(0, COL):
-        w.addch(ROW+1, x, ' ')
+        w.addch(ROW + 1, x, ' ')
     w.refresh()
 
     COMMAND_BUFFER = ':'
-    w.addstr(ROW+1,0, COMMAND_BUFFER)
+    w.addstr(ROW + 1, 0, COMMAND_BUFFER)
     w.refresh()
-    key = w.getch() 
+    key = w.getch()
     while key != curses.KEY_ENTER and key != 10:
         if key == curses.KEY_BACKSPACE:
-            (y,x) = curses.getsyx()
+            (y, x) = curses.getsyx()
             if x == 2:
                 key = w.getch()
                 continue
-            w.addch(y,x-1, ' ')
-            w.move(y,x-1)
+            w.addch(y, x - 1, ' ')
+            w.move(y, x - 1)
             COMMAND_BUFFER = COMMAND_BUFFER[:-1]
             key = w.getch()
             w.refresh()
@@ -292,7 +292,7 @@ def enter_command(w):
             key = w.getch()
             continue
         COMMAND_BUFFER += chr(key)
-        w.addstr(ROW+1,0, COMMAND_BUFFER)
+        w.addstr(ROW + 1, 0, COMMAND_BUFFER)
         w.refresh()
         key = w.getch()
 
@@ -314,22 +314,21 @@ def parse_command(w):
             draw_workspace(w)
             LT.start()
         else:
-            w.addstr(ROW+1, 0, 'Invalid port!')
+            w.addstr(ROW + 1, 0, 'Invalid port!')
             w.refresh()
             curses.curs_set(0)
             return
 
     for x in range(0, len(COMMAND_BUFFER)):
-        w.addch(ROW+1, x, ' ')
+        w.addch(ROW + 1, x, ' ')
     curses.curs_set(0)
     w.refresh()
     pass
 
+
 def write_input_history(w, direction):
-    
     global com_hist_mark
     global LINE_BUFFER
-
 
     com_hist_len = len(input_history)
     if com_hist_len == 0:
@@ -337,64 +336,61 @@ def write_input_history(w, direction):
 
     if direction == 'up':
         input_history.reverse()
-        if ( com_hist_len - ( com_hist_mark) ) <= 0:
+        if (com_hist_len - com_hist_mark) <= 0:
             return
-        
+
         LINE_BUFFER = input_history[com_hist_mark]
         com_hist_mark += 1
         input_history.reverse()
 
-
-
-
-        for x in range(2, COL-1):
+        for x in range(2, COL - 1):
             w.addch(INPUT_HEIGHT, x, ' ')
         w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
 
 
-        
-
-        
-
-
-
 def draw_workspace(w):
+    DH_LINE = '═'
+    DU_RCOR = '╗'
+    DU_LCOR = '╔'
+    DL_LCOR = '╚'
+    DL_RCOR = '╝'
+    DV_LINE = '║'
 
-    DH_LINE = '═' ; LINE = '─' ; DU_RCOR = '╗' ; DU_LCOR = '╔' 
-    DL_LCOR = '╚' ; DL_RCOR = '╝' ; DV_LINE = '║'
-
-    global COL ; global ROW
+    global COL
+    global ROW
     global INPUT_HEIGHT
     (ROW, COL) = w.getmaxyx()
-    ROW -= 2 ; COL -= 1 
+    ROW -= 2
+    COL -= 1
 
     w.addch(1, 0, DU_LCOR)
-    w.addch(1, COL,DU_RCOR)
+    w.addch(1, COL, DU_RCOR)
     w.addch(ROW, 0, DL_LCOR)
     w.addch(ROW, COL, DL_RCOR)
-    
-    for x in range(1,COL):
-        w.addch(1,x, DH_LINE)
-        w.addch(ROW,x, DH_LINE)
-        w.addch(ROW-2,x, DH_LINE)
-    for x in range(2,ROW):
-        w.addch(x,0, DV_LINE)
-        w.addch(x,COL, DV_LINE)
-   
+
+    for x in range(1, COL):
+        w.addch(1, x, DH_LINE)
+        w.addch(ROW, x, DH_LINE)
+        w.addch(ROW - 2, x, DH_LINE)
+    for x in range(2, ROW):
+        w.addch(x, 0, DV_LINE)
+        w.addch(x, COL, DV_LINE)
+
     title = 'sermon v0.9'
     if PORT is None:
         title += ' - no port specified'
     else:
         title += ' - ' + str(PORT)
-    l_title = len(title) ; y = 0
-    for x in range(0, COL+1):
-        if (x > (COL/2) - (l_title/2)) and (x < (COL/2) + (l_title/2)):
-            w.addch(0, x, title[y] , curses.A_REVERSE | curses.A_BOLD)
+    l_title = len(title)
+    y = 0
+    for x in range(0, COL + 1):
+        if (x > (COL / 2) - (l_title / 2)) and (x < (COL / 2) + (l_title / 2)):
+            w.addch(0, x, title[y], curses.A_REVERSE | curses.A_BOLD)
             y += 1
         else:
             w.addch(0, x, ' ', curses.A_REVERSE)
     INPUT_HEIGHT = ROW - 1
-    w.move(0,0)
+    w.move(0, 0)
     w.refresh()
 
 
