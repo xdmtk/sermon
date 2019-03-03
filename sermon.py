@@ -79,6 +79,10 @@ def key_events(w):
     
     global com_hist_mark
     key = w.getch()
+    if key == curses.KEY_RESIZE:
+        w.erase()
+        draw_workspace(w)
+        write_history(w)
     
     # Handle normal mode entries
     if MODE == 'normal':
