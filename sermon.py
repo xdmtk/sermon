@@ -353,10 +353,12 @@ def enter_command(w):
 
 
 def parse_command(w):
+    global LINE_BUFFER
     global COMMAND_BUFFER
     global INPUT_HEIGHT
     global quit_flag
     global PORT
+    global b_count_w 
 
     # For the few select commands, find special keys to parse
     if COMMAND_BUFFER.find('q') != -1:
@@ -383,15 +385,27 @@ def parse_command(w):
             w.refresh()
             curses.curs_set(0)
             return
-    
-    # On enter, clear command entry area
-    for x in range(0, len(COMMAND_BUFFER)):
-        w.addch(ROW + 1, x, ' ')
 
-    # Disappear cursor
-    curses.curs_set(0)
-    w.refresh()
-    pass
+    # Parse bytes entered for byte entry command
+    elif COMMAND_BUFFER.find('byte ') != -1:
+        byte_str = COMMAND_BUFFER[6:]
+
+        b_count_w_local = 0
+        byte_str = byte_str.split(' ')
+        for b in byte_str:
+            b_count_w_local += S.write(bytearray([int(b)]))
+        
+        w.addstr(ROW+1, 0, 'Wrote ' + str(b_count_w_local) + ' bytes')
+        w.refresh()
+        
+    if COMMAND_BUFFER.find('byte ') == -1:
+        # On enter, clear command entry area
+        for x in range(0, len(COMMAND_BUFFER)):
+            w.addch(ROW + 1, x, ' ')
+
+        # Disappear cursor
+        curses.curs_set(0)
+        w.refresh()
 
 
 # SECTION: CURSES FUNCTIONS
