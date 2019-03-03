@@ -28,6 +28,7 @@ com_hist_mark = 0
 quit_flag = None
 b_count_w = 0
 b_count_r = 0
+scroll_counter = 0
 
 
 def main(w):
@@ -93,9 +94,9 @@ def key_events(w):
         if key == ord('i'):
             set_insert_mode(w)
         if key == curses.KEY_NPAGE:
-            pass
+            scroll_text(w, 'down')
         if key == curses.KEY_PPAGE:
-            pass
+            scroll_text(w, 'up')
 
     # Handle insert mode entries
     elif MODE == 'insert':
@@ -115,6 +116,25 @@ def key_events(w):
 ###
 #
 
+def scroll_text(w, direction):
+    
+    global scroll_counter 
+
+    limit = INPUT_HEIGHT - LINE_POS_BEGIN
+    if len(serial_history) <= limit:
+        return
+
+    if direction == 'up':
+        if scroll_counter <= len(serial_history) - limit:
+            scroll_counter += 1
+    elif direction == 'down':
+        if scroll_counter != 0:
+            scroll_counter -= 1
+
+    write_history(w, False, scroll_counter)
+
+
+
 def write_byte_count(w):
 
     (cur_y, cur_x) = curses.getsyx()
@@ -131,10 +151,11 @@ def write_byte_count(w):
 
 
 
-def write_history(w, user_write=False):
+def write_history(w, user_write=False, scroll = False):
 
     # Save current cursor position
     (cur_y, cur_x) = curses.getsyx()
+    
 
     # Check for new entries from serial port into serial queue
     if Q.empty() is False:
@@ -144,29 +165,51 @@ def write_history(w, user_write=False):
             ser_response = Q.get().decode('ascii').replace('\n', '')
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
-    # Count measures the amount of overflow lines in serial history
+    limit = (INPUT_HEIGHT - LINE_POS_BEGIN)
+    line_start = 0 
+    # line_start measures the amount of overflow lines in serial history
     # to determine for curses when to start writing text to the text area
-    count = 0
-    if len(serial_history) >= (INPUT_HEIGHT - LINE_POS_BEGIN):
-        count = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN - 1)
+    if len(serial_history) >= limit:
+        
+        line_start = len(serial_history) - (INPUT_HEIGHT - LINE_POS_BEGIN - 1)
 
     
-    x = 0
+    line_marker = 0
     line_pos = LINE_POS_BEGIN
     for line in serial_history:
 
-        if count != 0 and x < count:
-            x += 1
+        # Exit loop if maximum lines in text area have been written
+        if limit == 1:
+            break
+
+        # If we have advanced in text area history, the line_start value 
+        # will be the first message to print, and line_marker indicates 
+        # the current iteration for serial history
+        if line_start != 0 and line_marker < (line_start - scroll_counter):
+            line_marker += 1
             continue
+        
+        # For every line written, subtract from limit
+        limit -= 1
+
+        # First clear the current line
         for y in range(2, COL - 1):
             w.addch(line_pos, y, ' ')
+
+        # Then add line content and advance the line position
         w.addstr(line_pos, 1, line)
         line_pos += 1
+
+    # If user sent message, move cursor back to input area
     if user_write is True:
         w.move(INPUT_HEIGHT, 2)
+
+    # Otherwise return cursor to original position
     else:
         write_byte_count(w)
         w.move(cur_y, cur_x)
+
+
     w.refresh()
 
 
