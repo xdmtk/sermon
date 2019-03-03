@@ -94,7 +94,7 @@ def key_events(w):
         if key == ord('i'):
             set_insert_mode(w)
         if key == curses.KEY_NPAGE:
-            scroll_text(w, 'up')
+            scroll_text(w, 'down')
         if key == curses.KEY_PPAGE:
             scroll_text(w, 'up')
 
@@ -125,9 +125,13 @@ def scroll_text(w, direction):
         return
 
     if direction == 'up':
-        scroll_counter += 1
-        line_start = len(serial_history) - limit
-        write_history(w, False, scroll_counter)
+        if scroll_counter <= len(serial_history) - limit:
+            scroll_counter += 1
+    elif direction == 'down':
+        if scroll_counter != 0:
+            scroll_counter -= 1
+
+    write_history(w, False, scroll_counter)
 
 
 
@@ -162,7 +166,7 @@ def write_history(w, user_write=False, scroll = False):
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
     limit = (INPUT_HEIGHT - LINE_POS_BEGIN)
-    
+    line_start = 0 
     # line_start measures the amount of overflow lines in serial history
     # to determine for curses when to start writing text to the text area
     if len(serial_history) >= limit:
@@ -181,7 +185,7 @@ def write_history(w, user_write=False, scroll = False):
         # If we have advanced in text area history, the line_start value 
         # will be the first message to print, and line_marker indicates 
         # the current iteration for serial history
-        if line_start != 0 and line_marker < line_start:
+        if line_start != 0 and line_marker < (line_start - scroll_counter):
             line_marker += 1
             continue
         
