@@ -79,6 +79,12 @@ def key_events(w):
     
     global com_hist_mark
     key = w.getch()
+    if key == curses.KEY_RESIZE:
+        w.erase()
+        if draw_workspace(w) == ERROR:
+            return
+        write_history(w)
+        return
     
     # Handle normal mode entries
     if MODE == 'normal':
@@ -428,6 +434,12 @@ def draw_workspace(w):
 
     # Set the terminal height
     (ROW, COL) = w.getmaxyx()
+    if (ROW < 15) or (COL < 40):
+        w.clear()
+        w.addstr(int(ROW/2), int(COL/2)-int(len('Screen size too small')/2) ,
+                'Screen size too small')
+        w.refresh()
+        return ERROR
 
     # Leave space for command entry
     ROW -= 2
