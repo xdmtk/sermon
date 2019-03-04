@@ -603,8 +603,37 @@ DESCRIPTION:
 
 
 
+COMMAND MODE:
+
+    To begin entering commands, enter command mode using the ESC key and then open the command buffer by 
+    typing the character ':' 
 
 
+    PORT SPECIFICATION: 
+        
+        In command mode you can specify on the fly the serial port to read/write from by using the 'port' command. 
+        
+        Usage: port [ PORT ]
+        Example: ( port /dev/ttyACM0 )
+
+    
+    WRITING RAW BYTES:
+
+        In addition to entering ASCII range input, you can also write raw bytes directly to the device by using the 'byte' 
+        command. 
+       
+        Usage: byte [ BYTE INTEGER VALUE ] 
+        Example: byte 26  ( sends CTRL-Z ) 
+
+
+
+CONTACT:
+
+    sermon is under active development and still in beta stages. Usage is at your own risk. To report bugs, please open an 
+    issue at https://github.com/xdmtk/sermon/issues
+
+'''
+    print(help_page)
     foo = input()
 
 
