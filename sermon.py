@@ -460,6 +460,10 @@ def parse_command(w):
         
         w.addstr(ROW+1, 0, 'Wrote ' + str(b_count_w_local) + ' bytes')
         w.refresh()
+    
+    elif COMMAND_BUFFER.find('help') != -1:
+        print_help_page(w)
+        draw_workspace(w)
         
     if COMMAND_BUFFER.find('byte ') == -1:
         # On enter, clear command entry area
@@ -543,6 +547,99 @@ def draw_workspace(w):
 
     w.move(0, 0)
     w.refresh()
+
+
+# SECTION: HELP SECTION
+#############################################
+###
+#
+
+def print_help_page(w):
+    
+    w.erase()
+    w.refresh()
+    curses.endwin()
+    print('\033[2J')
+    help_page = '''
+                                                                               
+              █████   ██████  ████████  █████████████    ██████  ████████  
+             ███░░   ███░░███░░███░░███░░███░░███░░███  ███░░███░░███░░███ 
+            ░░█████ ░███████  ░███ ░░░  ░███ ░███ ░███ ░███ ░███ ░███ ░███ 
+             ░░░░███░███░░░   ░███      ░███ ░███ ░███ ░███ ░███ ░███ ░███ 
+             ██████ ░░██████  █████     █████░███ █████░░██████  ████ █████
+            ░░░░░░   ░░░░░░  ░░░░░     ░░░░░ ░░░ ░░░░░  ░░░░░░  ░░░░ ░░░░░ 
+
+                                    sermon v0.9.1 
+                            https://github.com/xdmtk/sermon
+
+
+NAME: 
+     sermon - A curses-based serial monitor 
+
+SYNOPSIS: 
+
+    python3 sermon.py [ -p ] [ PORT ] [ -t ] [ TERMINATION CHAR ] [ -b ] [ BAUD RATE ] 
+
+DESCRIPTION: 
+
+    sermon is a light-weight curses-based terminal serial monitor used for reading and writing to serial ports. The sermon text 
+    interface uses VIM inspired key bindings to switch between insert mode and command mode. 
+
+    Command line usage allows optional specification of three arguments, namely the device port to open a serial connection
+    on, the terminating character to send after submitting input to the serial device, and the baud rate. 
+
+
+    -p  - Device port ( example: /dev/ttyUSB0 )
+
+    -t  - Termination character ( Defaults to newline )
+        
+            nl -> Newline/line feed \'\\n\'
+
+            cr -> Carriage return \'\\r\'
+
+            nlcr -> Newline/linefeed * Carriage return \'\\n\\r\'
+
+    -b  - Baud rate ( Defaults to 9600 )
+
+
+
+COMMAND MODE:
+
+    To begin entering commands, enter command mode using the ESC key and then open the command buffer by 
+    typing the character ':' 
+
+
+    PORT SPECIFICATION: 
+        
+        In command mode you can specify on the fly the serial port to read/write from by using the 'port' command. 
+        
+        Usage: port [ PORT ]
+        Example: ( port /dev/ttyACM0 )
+
+    
+    WRITING RAW BYTES:
+
+        In addition to entering ASCII range input, you can also write raw bytes directly to the device by using the 'byte' 
+        command. 
+       
+        Usage: byte [ BYTE INTEGER VALUE ] 
+        Example: byte 26  ( sends CTRL-Z ) 
+
+
+
+CONTACT:
+
+    sermon is under active development and still in beta stages. Usage is at your own risk. To report bugs, please open an 
+    issue at https://github.com/xdmtk/sermon/issues
+
+'''
+    print(help_page)
+    foo = input()
+
+
+
+
+
 
 
 
