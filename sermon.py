@@ -560,6 +560,51 @@ def print_help_page(w):
     w.refresh()
     curses.endwin()
     print('\033[2J')
+    help_page = '''
+                                                                               
+              █████   ██████  ████████  █████████████    ██████  ████████  
+             ███░░   ███░░███░░███░░███░░███░░███░░███  ███░░███░░███░░███ 
+            ░░█████ ░███████  ░███ ░░░  ░███ ░███ ░███ ░███ ░███ ░███ ░███ 
+             ░░░░███░███░░░   ░███      ░███ ░███ ░███ ░███ ░███ ░███ ░███ 
+             ██████ ░░██████  █████     █████░███ █████░░██████  ████ █████
+            ░░░░░░   ░░░░░░  ░░░░░     ░░░░░ ░░░ ░░░░░  ░░░░░░  ░░░░ ░░░░░ 
+
+                                    sermon v0.9.1 
+                            https://github.com/xdmtk/sermon
+
+
+NAME: 
+     sermon - A curses-based serial monitor 
+
+SYNOPSIS: 
+
+    python3 sermon.py [ -p ] [ PORT ] [ -t ] [ TERMINATION CHAR ] [ -b ] [ BAUD RATE ] 
+
+DESCRIPTION: 
+
+    sermon is a light-weight curses-based terminal serial monitor used for reading and writing to serial ports. The sermon text 
+    interface uses VIM inspired key bindings to switch between insert mode and command mode. 
+
+    Command line usage allows optional specification of three arguments, namely the device port to open a serial connection
+    on, the terminating character to send after submitting input to the serial device, and the baud rate. 
+
+
+    -p  - Device port ( example: /dev/ttyUSB0 )
+
+    -t  - Termination character ( Defaults to newline )
+        
+            nl -> Newline/line feed \'\\n\'
+
+            cr -> Carriage return \'\\r\'
+
+            nlcr -> Newline/linefeed * Carriage return \'\\n\\r\'
+
+    -b  - Baud rate ( Defaults to 9600 )
+
+
+
+
+
     foo = input()
 
 
