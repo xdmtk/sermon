@@ -460,6 +460,10 @@ def parse_command(w):
         
         w.addstr(ROW+1, 0, 'Wrote ' + str(b_count_w_local) + ' bytes')
         w.refresh()
+    
+    elif COMMAND_BUFFER.find('help') != -1:
+        print_help_page(w)
+        draw_workspace(w)
         
     if COMMAND_BUFFER.find('byte ') == -1:
         # On enter, clear command entry area
@@ -543,6 +547,25 @@ def draw_workspace(w):
 
     w.move(0, 0)
     w.refresh()
+
+
+# SECTION: HELP SECTION
+#############################################
+###
+#
+
+def print_help_page(w):
+    
+    w.erase()
+    w.refresh()
+    curses.endwin()
+    print('\033[2J')
+    foo = input()
+
+
+
+
+
 
 
 
