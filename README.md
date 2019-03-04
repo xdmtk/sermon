@@ -49,7 +49,7 @@ Example: ( port /dev/ttyACM0 )
 In addition to entering ASCII range input, you can also write raw bytes directly to the device by using the 'byte' 
 command. 
 
-Usage: byte [ BYTE INTEGER VALUE ] 
+Usage: byte [ BYTE INTEGER VALUE ] <br> 
 Example: byte 26  ( sends CTRL-Z ) 
 
 
