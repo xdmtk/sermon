@@ -58,17 +58,27 @@ def serial_listen(w):
     global S
     global b_count_r
 
-    S = serial.Serial(PORT)
-    S.baudrate = BAUD_RATE
     while True:
-        if quit_flag is not None:
-            S.close()
-            curses.endwin()
-            quit()
-        msg = S.readline()
-        b_count_r += len(msg)
-        Q.put(msg)
-        write_history(w)
+        try:
+            S = serial.Serial(PORT)
+            S.baudrate = BAUD_RATE
+        except:
+            Q.put("Waiting for serial connection")
+            continue
+        while True:
+            if quit_flag is not None:
+                S.close()
+                curses.endwin()
+                quit()
+            try:
+                msg = S.readline()
+            except Exception as e:
+                Q.put("Serial disconnected - Exception caught: " + str(e))
+                break
+
+            b_count_r += len(msg)
+            Q.put(msg)
+            write_history(w)
 
 
 # SECTION: MASTER KEY EVENTS
@@ -162,7 +172,7 @@ def write_history(w, user_write=False, scroll = False):
 
         # Add all data from queue to the serial history list
         while Q.empty() is False:
-            ser_response = Q.get().decode('ascii').replace('\n', '')
+            ser_response = Q.get().decode().replace('\n', '')
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
     limit = (INPUT_HEIGHT - LINE_POS_BEGIN)
@@ -274,7 +284,11 @@ def flush_input(w):
     
     # Record bytes written successfully
     else:
-        b_written = S.write(bytes((LINE_BUFFER + TERM_CHR).encode('ascii')))
+        b_written = 0
+        try:
+            b_written = S.write(bytes((LINE_BUFFER + TERM_CHR).encode('ascii')))
+        except:
+            serial_history.append('Failed to write to serial port')
 
         if b_written != 0:
             serial_history.append(USER_PROMPT + LINE_BUFFER)
