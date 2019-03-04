@@ -5,28 +5,28 @@ _Demo from simple Arduino Uno sketch to echo received serial input_
 
 ### SYNOPSIS: 
 
-python3 sermon.py [ -p ] [ PORT ] [ -t ] [ TERMINATION CHAR ] [ -b ] [ BAUD RATE ] 
+`python3 sermon.py [ -p ] [ PORT ] [ -t ] [ TERMINATION CHAR ] [ -b ] [ BAUD RATE ]`
 
 ### DESCRIPTION: 
 
-sermon is a light-weight curses-based terminal serial monitor used for reading and writing to serial ports. The sermon text 
-interface uses VIM inspired key bindings to switch between insert mode and command mode. 
+`sermon` is a light-weight curses-based terminal serial monitor used for reading and writing to serial ports. The sermon text 
+interface uses `vim` inspired key bindings to switch between insert mode and command mode. 
 
 Command line usage allows optional specification of three arguments, namely the device port to open a serial connection
 on, the terminating character to send after submitting input to the serial device, and the baud rate. 
 
 
--p  - Device port ( example: /dev/ttyUSB0 )
+*-p*  - Device port ( example: /dev/ttyUSB0 )
 
--t  - Termination character ( Defaults to newline )
+*-t*  - Termination character ( Defaults to newline )
 
-nl -> Newline/line feed \'\\n\'
+*nl* -> Newline/line feed `\n`
 
-cr -> Carriage return \'\\r\'
+*cr* -> Carriage return `\r`
 
-nlcr -> Newline/linefeed * Carriage return \'\\n\\r\'
+*nlcr* -> Newline/linefeed * Carriage return `\r\n`
 
--b  - Baud rate ( Defaults to 9600 )
+*-b*  - Baud rate ( Defaults to 9600 )
 
 
 
