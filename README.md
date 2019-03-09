@@ -32,7 +32,7 @@ on, the terminating character to send after submitting input to the serial devic
 ### COMMAND MODE:
 
 To begin entering commands, enter command mode using the ESC key and then open the command buffer by 
-typing the character ':'*  * 
+typing the character ':' 
 
 
 ##### PORT SPECIFICATION: 
@@ -53,10 +53,10 @@ command.
 
 
 ### Dependencies
- `sermon` requires Python3 and the `pyserial` module, installable through `pip3`
+ `sermon` requires `python3` and the `pyserial` module, installable through `pip3`
 
 `apt-get install python3 python3-pip` <br>
-`pip3 install pyserial`
+`pip3 install pyserial
 
 
 
