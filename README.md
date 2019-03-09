@@ -1,6 +1,6 @@
 # sermon
 ![](https://s3.amazonaws.com/xdmtk-test-group/sermon-demo.gif)
-_Interfacing with a SIM808 GPRS module via usb-ttl adapater_
+_Serial communication with a SIM808 GPRS module via usb-ttl adapater_
 
 ### SYNOPSIS: 
 
