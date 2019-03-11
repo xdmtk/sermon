@@ -9,7 +9,7 @@ _Serial communication with a SIM808 GPRS module via usb-ttl adapater_
 ### DESCRIPTION: 
 
 `sermon` is a light-weight curses-based terminal serial monitor used for reading and writing to serial ports. The sermon text 
-interface*  uses `vim` inspired key bindings to switch between insert mode and command mode. 
+interface  uses `vim` inspired key bindings to switch between insert mode and command mode. 
 
 Command line usage allows optional specification of three arguments, namely the device port to open a serial connection
 on, the terminating character to send after submitting input to the serial device, and the baud rate. 
@@ -39,8 +39,8 @@ typing the character ':'
 
 In command mode you can specify on the fly the serial port to read/write from by using the 'port' command. 
 
-* **Usage**: port [ PORT ]
-* **Example**: ( port /dev/ttyACM0 )
+* **Usage**: `:port [ PORT ]`
+* **Example**: `:port /dev/ttyACM0` 
 
 
 ##### WRITING RAW BYTES:
@@ -48,19 +48,19 @@ In command mode you can specify on the fly the serial port to read/write from by
 In addition to entering ASCII range input, you can also write raw bytes directly to the device by using the 'byte' 
 command. 
 
-* **Usage**: byte [ BYTE INTEGER VALUE ] <br> 
-* **Example**: byte 26  ( _sends CTRL-Z_ ) 
+* **Usage**: `:byte [ BYTE INTEGER VALUE ]` <br> 
+* **Example**: `:byte 26`  ( _sends CTRL-Z_ ) 
 
 
 ### Dependencies
  `sermon` requires `python3` and the `pyserial` module, installable through `pip3`
 
 `apt-get install python3 python3-pip` <br>
-`pip3 install pyserial
+`pip3 install pyserial`
 
 
 
 ### CONTACT:
 
-`sermon` is under active development and still in beta stages. Usage is at your own risk. To report a bug, please open an 
+`sermon` is under active development. To report a bug, please open an 
 issue at https://github.com/xdmtk/sermon/issues
