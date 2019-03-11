@@ -52,7 +52,7 @@ command.
 * **Example**: `:byte 26`  ( _sends CTRL-Z_ ) 
 
 
-### Dependencies
+### DEPENDENCIES 
  `sermon` requires `python3` and the `pyserial` module, installable through `pip3`
 
 `apt-get install python3 python3-pip` <br>
