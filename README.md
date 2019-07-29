@@ -62,5 +62,5 @@ command.
 
 ### CONTACT:
 
-`sermon` is under active development. To report a bug, please open an 
-issue at https://github.com/xdmtk/sermon/issues
+`sermon` is ~under active development~ a bit dead. To report a bug, please open an 
+issue at https://github.com/xdmtk/sermon/issues , though I may not get around to it. 
