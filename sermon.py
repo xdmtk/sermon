@@ -62,8 +62,10 @@ def serial_listen(w):
         try:
             S = serial.Serial(PORT)
             S.baudrate = BAUD_RATE
-        except:
+        except Exception as e:
             Q.put("Waiting for serial connection")
+            Q.put("Exception: " + str(e))
+            time.sleep(1)
             continue
         while True:
             if quit_flag is not None:
@@ -172,7 +174,11 @@ def write_history(w, user_write=False, scroll = False):
 
         # Add all data from queue to the serial history list
         while Q.empty() is False:
-            ser_response = Q.get().decode().replace('\n', '')
+            ser_response = None
+            try:
+                ser_response = Q.get().decode().replace('\n', '')
+            except:
+                ser_response = Q.get().replace('\n', '')
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
     limit = (INPUT_HEIGHT - LINE_POS_BEGIN)
