@@ -537,7 +537,7 @@ def draw_workspace(w):
 
 
     # Set title
-    title = 'sermon v0.9'
+    title = 'sermon v1.0'
     if PORT is None:
         title += ' - no port specified'
     else:
