@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import curses, os, time
 import socket, sys, serial
 import signal, subprocess
@@ -19,7 +20,7 @@ MODE = 'normal'
 LINE_BUFFER = ''
 COMMAND_BUFFER = ''
 LINE_POS_BEGIN = 2
-USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
+USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname()
 
 serial_history = []
 input_history = []
@@ -269,6 +270,10 @@ def process_input(w, key):
     w.addstr(INPUT_HEIGHT, 2, LINE_BUFFER)
     w.refresh()
 
+def get_time():
+    tm = time.gmtime(time.time())
+    return ' [' + str(tm.tm_hour) + ':' + str(tm.tm_min) + ':' + str(tm.tm_sec) + ']'
+
 
 def flush_input(w):
 
@@ -284,7 +289,7 @@ def flush_input(w):
 
     # Only write to serial if port is specified
     if PORT is None:
-        serial_history.append(USER_PROMPT + LINE_BUFFER)
+        serial_history.append(USER_PROMPT + get_time() + ' >> ' + LINE_BUFFER)
         serial_history.append('No port/device specified!')
         write_history(w, True)
     
