@@ -179,7 +179,10 @@ def write_history(w, user_write=False, scroll = False):
             try:
                 ser_response = Q.get().decode().replace('\n', '')
             except:
-                ser_response = Q.get().replace('\n', '')
+                try:
+                    ser_response = Q.get().replace('\n', '')
+                except:
+                    pass
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
     limit = (INPUT_HEIGHT - LINE_POS_BEGIN)
