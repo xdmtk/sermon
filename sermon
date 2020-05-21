@@ -20,7 +20,7 @@ MODE = 'normal'
 LINE_BUFFER = ''
 COMMAND_BUFFER = ''
 LINE_POS_BEGIN = 2
-USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname()
+USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
 
 serial_history = []
 input_history = []
@@ -39,7 +39,7 @@ def main(w):
     def clean_thread_exit(sig, frame):
         global quit_flag
         quit_flag = True
-        quit()
+        sys.exit(0) 
 
     signal.signal(signal.SIGINT, clean_thread_exit)
 
@@ -72,7 +72,7 @@ def serial_listen(w):
             if quit_flag is not None:
                 S.close()
                 curses.endwin()
-                quit()
+                sys.exit(0)
             try:
                 msg = S.readline()
             except Exception as e:
@@ -440,7 +440,9 @@ def parse_command(w):
     # For the few select commands, find special keys to parse
     if COMMAND_BUFFER.find('q') != -1:
         quit_flag = True
-        quit()
+        curses.endwin()
+        os.kill(os.getpid(), signal.SIGKILL)
+        sys.exit(0)
 
     # For port entry
     elif COMMAND_BUFFER.find('port ') != -1:
