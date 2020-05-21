@@ -154,11 +154,11 @@ def write_byte_count(w):
     (cur_y, cur_x) = curses.getsyx()
 
     # Starting position decided by len of r/w string
-    start_pos = COL - len('RECV: XXX  -  WRITE: XXX')
+    start_pos = COL - len('RECV: XXXXXXXXXXXX  -  WRITE: XXXXXXXXXXXX')
 
     # Write received and written to upper right corner
-    w.addstr(0, start_pos, 'RECV: ' + str(b_count_r).rjust(3) +
-             '  -  WRITE: ' + str(b_count_w).rjust(3), curses.A_REVERSE | curses.A_BOLD)
+    w.addstr(0, start_pos, 'RECV: ' + str(b_count_r).rjust(9) +
+             '  -  WRITE: ' + str(b_count_w).rjust(9), curses.A_REVERSE | curses.A_BOLD)
 
     w.move(cur_y, cur_x)
     w.refresh()
