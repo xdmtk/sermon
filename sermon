@@ -181,8 +181,8 @@ def write_history(w, user_write=False, scroll = False):
             except:
                 try:
                     ser_response = Q.get().replace('\n', '')
-                except:
-                    pass
+                except Exception as e:
+                    serial_history.append(PORT + ' >> Exception occurred: ' + str(e))
             serial_history.append(PORT + ' >> ' + str(ser_response))
 
     limit = (INPUT_HEIGHT - LINE_POS_BEGIN)
