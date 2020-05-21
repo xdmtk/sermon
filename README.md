@@ -1,23 +1,47 @@
 # sermon
 ![](https://s3.amazonaws.com/xdmtk-test-group/sermon-demo.gif)
+
+
 _Serial communication with a SIM808 GPRS module via usb-ttl adapater_
 
-### SYNOPSIS: 
 
-`python3 sermon.py [ -p ] [ PORT ] [ -t ] [ TERMINATION CHAR ] [ -b ] [ BAUD RATE ]`
+### Introduction
 
-### DESCRIPTION: 
+`sermon` is a light-weight curses-based terminal serial monitor used for reading and writing to serial 
+devices during embedded development sessions. The sermon text interface  uses `vim` inspired key bindings 
+to switch between insert mode and command mode. 
 
-`sermon` is a light-weight curses-based terminal serial monitor used for reading and writing to serial ports. The sermon text 
-interface  uses `vim` inspired key bindings to switch between insert mode and command mode. 
+Command line usage allows optional specification of three arguments, namely the device port to open a serial 
+connection on, the terminating character to send after submitting input to the serial device, and the baud rate. 
 
-Command line usage allows optional specification of three arguments, namely the device port to open a serial connection
-on, the terminating character to send after submitting input to the serial device, and the baud rate. 
+### Dependencies 
 
+`sermon` makes use of the `serial` module, installable via the `pyserial` Pip package. Install using the 
+`requirements.txt` file 
 
-* **-p**  - Device port ( _example: /dev/ttyUSB0_ )
+```
+sudo pip3 install -r requirements.txt
+```
 
-* **-t**  - Termination character ( Defaults to newline )
+### Usage
+
+`./sermon [ -p ] [ PORT ] [ -t ] [ TERMINATION CHAR ] [ -b ] [ BAUD RATE ]`
+
+##### Port
+
+Without arguments `sermon` isn't very useful. At minimum a serial device should be specified with the `-p` 
+argument. The following opens a serial session on `/dev/USB0`
+
+```
+./sermon -p /dev/USB0
+```
+
+##### Termination Character
+
+Some serial enabled devices are picky about what constitutes a complete transmission. When sending messages 
+to a serial device with `sermon`, the default behavior is to append a `\n` character to the message. 
+
+However this can be changed by specifying the `-t` argument with the the following options.
 
 * **nl** -> Newline/line feed `\n`
 
@@ -25,17 +49,25 @@ on, the terminating character to send after submitting input to the serial devic
 
 * **nlcr** -> Newline/linefeed + Carriage return `\r\n`
 
-* **-b**  - Baud rate ( _Defaults to 9600_ )
+The following opens a serial session on `/dev/USB0`, and specifies the termination sequence as `\n\r`
+
+```
+./sermon  -p /dev/USB0 -t nlcr
+```
+
+##### Baud Rate
+
+`sermon` also allows you to set the baud rate for the serial communication session with the `-b` flag. This
+option defaults to 9600 if no baud rate is specified.
 
 
-
-### COMMAND MODE:
+### Runtime Command Modes
 
 To begin entering commands, enter command mode using the ESC key and then open the command buffer by 
 typing the character ':' 
 
 
-##### PORT SPECIFICATION: 
+##### Port
 
 In command mode you can specify on the fly the serial port to read/write from by using the 'port' command. 
 
@@ -43,7 +75,7 @@ In command mode you can specify on the fly the serial port to read/write from by
 * **Example**: `:port /dev/ttyACM0` 
 
 
-##### WRITING RAW BYTES:
+##### Raw Byte Transmission
 
 In addition to entering ASCII range input, you can also write raw bytes directly to the device by using the 'byte' 
 command. 
@@ -52,15 +84,8 @@ command.
 * **Example**: `:byte 26`  ( _sends CTRL-Z_ ) 
 
 
-### DEPENDENCIES 
- `sermon` requires `python3` and the `pyserial` module, installable through `pip3`
+### Contact
 
-`apt-get install python3 python3-pip` <br>
-`pip3 install pyserial`
-
-
-
-### CONTACT:
-
-`sermon` is ~under active development~ a bit dead. To report a bug, please open an 
-issue at https://github.com/xdmtk/sermon/issues , though I may not get around to it. 
+`sermon` is slowly being revived as I continue with my own embedded projects. The latest release, 
+v1.1, fixes a handful of annoying bugs that were present in the previous iterations. To report a bug, 
+please open an issue at https://github.com/xdmtk/sermon/issues , though I may not get around to it. 
