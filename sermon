@@ -21,7 +21,7 @@ MODE = 'normal'
 LINE_BUFFER = ''
 COMMAND_BUFFER = ''
 LINE_POS_BEGIN = 2
-USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() + ' >> '
+USER_PROMPT = os.getenv('USER') + '@' + socket.gethostname() 
 
 serial_history = []
 input_history = []
@@ -183,8 +183,8 @@ def write_history(w, user_write=False, scroll = False):
                 try:
                     ser_response = Q.get().replace('\n', '')
                 except Exception as e:
-                    serial_history.append(PORT + ' >> Exception occurred: ' + str(e))
-            serial_history.append(PORT + ' >> ' + str(ser_response))
+                    serial_history.append(PORT + get_time() + ' >> Exception occurred: ' + str(e))
+            serial_history.append(PORT + get_time() +' >> ' + str(ser_response))
 
     limit = (INPUT_HEIGHT - LINE_POS_BEGIN)
     line_start = 0 
@@ -276,7 +276,7 @@ def process_input(w, key):
 
 def get_time():
     tm = time.gmtime(time.time())
-    return ' [' + str(tm.tm_hour) + ':' + str(tm.tm_min) + ':' + str(tm.tm_sec) + ']'
+    return ' - [' + str(tm.tm_hour) + ':' + str(tm.tm_min) + ':' + str(tm.tm_sec) + '] -'
 
 
 def flush_input(w):
@@ -306,12 +306,12 @@ def flush_input(w):
             serial_history.append('Failed to write to serial port')
 
         if b_written != 0:
-            serial_history.append(USER_PROMPT + LINE_BUFFER)
+            serial_history.append(USER_PROMPT + get_time() + ' >> ' + LINE_BUFFER)
             write_history(w, True)
 
         # If no bytes are written, log error
         else:
-            serial_history.append(USER_PROMPT + LINE_BUFFER)
+            serial_history.append(USER_PROMPT + get_time() +  ' >> ' + LINE_BUFFER)
 
             if len(LINE_BUFFER) != 0:
                 serial_history.append('Failed to write to serial port')
