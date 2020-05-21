@@ -14,6 +14,7 @@ PORT = None
 INPUT_HEIGHT = None
 TERM_CHR = '\n'
 BAUD_RATE = 9600
+VERSION_NUM = 'v1.1'
 
 ERROR = -1
 MODE = 'normal'
@@ -542,7 +543,7 @@ def draw_workspace(w):
 
 
     # Set title
-    title = 'sermon v1.0'
+    title = 'sermon ' + VERSION_NUM 
     if PORT is None:
         title += ' - no port specified'
     else:
@@ -570,11 +571,12 @@ def draw_workspace(w):
 ###
 #
 
-def print_help_page(w):
+def print_help_page(w = None):
     
-    w.erase()
-    w.refresh()
-    curses.endwin()
+    if w is not None:
+        w.erase()
+        w.refresh()
+        curses.endwin()
     print('\033[2J')
     help_page = '''
                                                                                
@@ -585,7 +587,7 @@ def print_help_page(w):
              ██████ ░░██████  █████     █████░███ █████░░██████  ████ █████
             ░░░░░░   ░░░░░░  ░░░░░     ░░░░░ ░░░ ░░░░░  ░░░░░░  ░░░░ ░░░░░ 
 
-                                    sermon v1.0.0 
+                                    sermon {version}
                             https://github.com/xdmtk/sermon
 
 
@@ -648,9 +650,11 @@ CONTACT:
     sermon is under active development and still in beta stages. Usage is at your own risk. To report bugs, please open an 
     issue at https://github.com/xdmtk/sermon/issues
 
-'''
+'''.format(version=VERSION_NUM)
     print(help_page)
-    foo = input()
+
+    if w is not None:
+        foo = input()
 
 
 
@@ -693,10 +697,16 @@ def parse_args():
                 x += 1
                 continue
 
+            # Argument to set baud rate
+            if sys.argv[x].find('help') != -1:
+                print_help_page()
+                sys.exit(0)
+
+
     # Check for argument erros
     if validate_args() == ERROR:
         print("Error with arguments")
-        quit()
+        sys.exit(0)
 
 
 def validate_args():
