@@ -1,5 +1,5 @@
 # sermon
-![](https://i.ibb.co/vkxBGJc/fsasa.gif)
+![](misc/sermon-demo.gif)
 
 
 _Serial communication with a SIM808 GPRS module via usb-ttl adapater_
