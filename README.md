@@ -1,5 +1,5 @@
 # sermon
-![](https://s3.amazonaws.com/xdmtk-test-group/sermon-demo.gif)
+![](https://xdmtk-test-group.s3.amazonaws.com/fsasa.gif)
 
 
 _Serial communication with a SIM808 GPRS module via usb-ttl adapater_
